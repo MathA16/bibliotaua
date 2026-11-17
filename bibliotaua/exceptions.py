@@ -29,18 +29,45 @@ class CupomInexistenteError(CupomInvalidoError):
 
 # TODO: 2. CupomInativoError(CupomInvalidoError)
 # Mensagem: "O cupom '{codigo}' encontra-se desativado temporariamente."
+class CupomInativoError(CupomInvalidoError):
+    """Lançada quando o cupom existe mas foi desativado (FE01)."""
+    def __init__(self, codigo: str):
+        super().__init__(f"O cupom '{codigo}' encontra-se desativado temporariamente.")
+        self.codigo = codigo
 
 
 # TODO: 3. CupomExpiradoError(CupomInvalidoError)
 # Mensagem: "O cupom '{codigo}' expirou em {validade_ate}."
+class CupomExpiradoError(CupomInvalidoError):
+    """Lançada quando a data atual ultrapassa a data limite (FE02)."""
+    def __init__(self, codigo: str, validade_ate: str):
+        super().__init__(f"O cupom '{codigo}' expirou em {validade_ate}.")
+        self.codigo = codigo
+        self.validade_ate = validade_ate
 
 
 # TODO: 4. CupomEsgotadoError(CupomInvalidoError)
 # Mensagem: "O cupom '{codigo}' atingiu a quantidade máxima de {limite} usos e esgotou."
+class CupomEsgotadoError(CupomInvalidoError):
+    """Lançada quando a cota máxima de utilizações foi atingida (FE03)."""
+    def __init__(self, codigo: str, limite: int):
+        super().__init__(f"O cupom '{codigo}' atingiu a quantidade máxima de {limite} usos e esgotou.")
+        self.codigo = codigo
+        self.limite = limite
 
 
 # TODO: 5. ValorMinimoNaoAtingidoError(CupomInvalidoError)
 # Mensagem: "O cupom '{codigo}' exige pedido mínimo de R$ {valor_minimo:.2f}. Subtotal atual: R$ {subtotal_atual:.2f}."
+class ValorMinimoNaoAtingidoError(CupomInvalidoError):
+    """Lançada quando o subtotal é inferior ao exigido (FE04)."""
+    def __init__(self, codigo: str, valor_minimo: float, subtotal_atual: float):
+        super().__init__(
+            f"O cupom '{codigo}' exige pedido mínimo de R$ {valor_minimo:.2f}. "
+            f"Subtotal atual: R$ {subtotal_atual:.2f}."
+        )
+        self.codigo = codigo
+        self.valor_minimo = valor_minimo
+        self.subtotal_atual = subtotal_atual
 
 
 # ==============================================================================
