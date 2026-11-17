@@ -1,77 +1,68 @@
-# BiblioTauá — Projeto Prático do Aluno (Sprint 04 - Aula 24)
-## TASK-204: Motor de Validação e Aplicação de Cupons de Desconto
+# BiblioTauá — Projeto Prático do Aluno (Sprint 04 - Aula 25)
+## TASK-204 (Etapa 2): Persistência Relacional com SQLite e Padrão Repository
 
-Bem-vindo(a) à Sprint 04 do sistema **BiblioTauá Livraria Web**!
+Bem-vindo(a) ao Encontro 2 da Sprint 04 do sistema **BiblioTauá Livraria Web**!
 
-Este repositório contém a base pré-existente (v0.3.0) da livraria universitária (`Cliente`, `Livro`, `ItemPedido`, `Pedido`, banco SQLite) e o esqueleto inicial das tarefas que você implementará na **Aula 24**.
+Na Aula 24, você implementou a hierarquia de exceções (`exceptions.py`) e a entidade de domínio `Cupom` (`models/cupom.py`).
+Hoje, conectaremos esse modelo de domínio ao banco de dados relacional **SQLite**, garantindo integridade referencial, consultas protegidas contra SQL Injection e operações concorrentes seguras.
 
 ---
 
 ## 🌿 Fluxo Git & GitHub do Estudante
 
-1. **Repositório Oficial:** `https://github.com/reginaldo-pf/bibliotaua`
-2. **Fork:** Crie seu fork no GitHub desmarcando a opção *"Copy only the main branch"*.
-3. **Clonagem e Setup:**
-   ```bash
-   git clone https://github.com/<SEU-USUARIO>/bibliotaua.git
-   cd bibliotaua
-   git remote add upstream https://github.com/reginaldo-pf/bibliotaua.git
-   git fetch upstream
-   git checkout -b feature/task-204-motor-cupons origin/aula-24
-   ```
+Você segue desenvolvendo no seu **próprio repositório no GitHub** (fork):
+
+*   **Opção A (Continuar da Aula 24):**
+    ```bash
+    git checkout feature/task-204-motor-cupons
+    ```
+*   **Opção B (Ponto Homologado da Aula 25):**
+    ```bash
+    git fetch upstream
+    git checkout -b feature/task-204-aula25 upstream/aula-25
+    ```
 
 ---
 
 ## 🎯 Suas Tarefas Hoje
 
-1. **`bibliotaua/exceptions.py`:**
-   - Implementar as subclasses de exceção que herdam de `CupomInvalidoError` *(Slide 12)*:
-     - `CupomInexistenteError`
-     - `CupomInativoError`
-     - `CupomExpiradoError`
-     - `CupomEsgotadoError`
-     - `ValorMinimoNaoAtingidoError`
+1. **`bibliotaua/database.py` (Script DDL SQLite):**
+   - Garantir a instrução `CREATE TABLE IF NOT EXISTS cupons (...)` com todas as constraints (`CHECK`, `UNIQUE`, `DEFAULT`).
+   - Adicionar a chave estrangeira `cupom_id INTEGER` e `FOREIGN KEY (cupom_id) REFERENCES cupons(id)` na tabela `pedidos`.
+   - Criar o índice `idx_cupons_codigo` para buscas instantâneas por código alfanumérico.
 
-2. **`bibliotaua/models/cupom.py`:**
-   - Implementar validações no método `__post_init__` *(Slide 13 e Guia do Desenvolvedor Passo 2.3)*.
-   - Implementar os métodos de domínio *(Slides 14 e 15 e Guia do Desenvolvedor Passos 2.4 a 2.9)*:
-     - `obter_data_validade()`
-     - `esta_expirado(data_referencia)`
-     - `atingiu_limite_usos()`
-     - `registrar_uso()`
-     - `pode_ser_aplicado_ao_pedido(subtotal, data_referencia)`
-     - `calcular_desconto(subtotal, data_referencia)`
+2. **`bibliotaua/repositories/cupom_repository.py` (Padrão Repository):**
+   - Implementar o construtor `__init__(self, conexao)` armazenando a conexão SQLite.
+   - Implementar o conversor `_instanciar_cupom(self, row)` transformando `sqlite3.Row` na entidade de domínio `Cupom`.
+   - Implementar `salvar(self, cupom)` usando query parametrizada com `?` (INSERT para novo ou UPDATE se já possui `id`).
+   - Implementar `buscar_por_codigo(self, codigo)` com blindagem absoluta contra SQL Injection, lançando `CupomInexistenteError` quando não localizado.
+   - Implementar `buscar_por_id(self, cupom_id)` e `listar_todos(self)`.
+   - Implementar `registrar_uso(self, codigo)` chamando `cupom.registrar_uso()` (Aula 24) e persistindo o incremento no SQLite.
 
-3. **`main.py`:**
-   - Criar ou completar o arquivo `main.py` na raiz do projeto para instanciar o cupom e testar o cálculo de desconto e o bloqueio de valor mínimo *(Slide 16 e Guia do Desenvolvedor Passo 3)*.
+3. **`main.py` (Script de Verificação Integrada):**
+   - Executar os 7 testes práticos no terminal e verificar a compatibilidade 100% com a Aula 24.
 
 ---
 
 ## 🚀 Como Executar
 
-No terminal, execute:
+No terminal, dentro da pasta do projeto, execute:
 
 ```bash
 python3 main.py
 ```
 
-**Saída esperada:**
-
-```text
---- Testando a Entidade Cupom (BiblioTauá) ---
-Cupom: BEMVINDO10 (10.0% OFF)
-Subtotal R$ 100.00 -> Desconto: R$ 10.00
-Subtotal R$ 30.00  -> Bloqueado: O cupom 'BEMVINDO10' exige pedido mínimo de R$ 50.00. Subtotal atual: R$ 30.00.
-```
+**Critério de Aceite:**
+Todos os 7 blocos de teste devem exibir status positivo, confirmando a recuperação dos dados, o cálculo de desconto compatível com a Aula 24 e o bloqueio de injeção de SQL.
 
 ---
 
 ## 💾 Versionamento e Entrega no GitHub
 
-Após homologar a execução, envie o código para o seu repositório pessoal:
+Ao concluir os testes com sucesso, envie o código para seu repositório pessoal:
 
 ```bash
-git add bibliotaua/exceptions.py bibliotaua/models/cupom.py main.py
-git commit -m "feat(domain): implementa excecoes e entidade Cupom (Aula 24)"
-git push -u origin feature/task-204-motor-cupons
+git add bibliotaua/database.py bibliotaua/repositories/cupom_repository.py main.py
+git commit -m "feat(persistence): implementa DDL cupons e CupomRepository (Aula 25)"
+git push origin HEAD
 ```
