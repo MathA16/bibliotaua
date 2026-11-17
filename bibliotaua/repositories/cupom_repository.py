@@ -1,37 +1,18 @@
 """
-Repositório de Persistência SQLite: CupomRepository (TASK-204 - Etapa 2)
+Repositório de Persistência SQLite: CupomRepository (TASK-204)
 Implementa operações CRUD e métodos de consulta para a entidade Cupom.
 """
 import sqlite3
 from typing import List, Optional
 from bibliotaua.models.cupom import Cupom, TipoDesconto
-from bibliotaua.exceptions import CupomInexistenteError, CupomEsgotadoError
+from bibliotaua.exceptions import CupomInexistenteError
 
 class CupomRepository:
-    """Repositório responsável pela persistência e busca de cupons no SQLite."""
-
     def __init__(self, conexao: sqlite3.Connection):
-        """Inicializa o repositório com uma conexão ativa ao banco SQLite."""
         self.conn = conexao
-
-    def _instanciar_cupom(self, row: sqlite3.Row) -> Cupom:
-        """Converte uma linha relacional do SQLite para o objeto de domínio Cupom."""
-        # TODO: Implementar Passo 2.2 do Guia do Desenvolvedor
-        return Cupom(
-            id=row["id"],
-            codigo=row["codigo"],
-            tipo_desconto=TipoDesconto(row["tipo_desconto"]),
-            valor_desconto=float(row["valor_desconto"]),
-            valor_minimo_pedido=float(row["valor_minimo_pedido"]),
-            limite_usos=int(row["limite_usos"]),
-            usos_realizados=int(row["usos_realizados"]),
-            validade_ate=row["validade_ate"],
-            ativo=bool(row["ativo"])
-        )
 
     def salvar(self, cupom: Cupom) -> Cupom:
         """Salva ou atualiza um cupom no banco de dados SQLite."""
-        # TODO: Implementar Passo 2.3 do Guia do Desenvolvedor (INSERT ou UPDATE parametrizado com ?)
         if cupom.id is None:
             cursor = self.conn.execute("""
                 INSERT INTO cupons (
@@ -75,7 +56,6 @@ class CupomRepository:
 
     def buscar_por_codigo(self, codigo: str) -> Cupom:
         """Recupera um cupom pelo código ou lança CupomInexistenteError."""
-        # TODO: Implementar Passo 2.4 do Guia do Desenvolvedor (Consulta com ?)
         codigo_formatado = codigo.strip().upper()
         cursor = self.conn.execute(
             "SELECT * FROM cupons WHERE codigo = ?",
@@ -88,7 +68,6 @@ class CupomRepository:
 
     def buscar_por_id(self, cupom_id: int) -> Optional[Cupom]:
         """Recupera um cupom pela chave primária."""
-        # TODO: Implementar Passo 2.5 do Guia do Desenvolvedor
         cursor = self.conn.execute("SELECT * FROM cupons WHERE id = ?", (cupom_id,))
         row = cursor.fetchone()
         if not row:
@@ -97,13 +76,11 @@ class CupomRepository:
 
     def listar_todos(self) -> List[Cupom]:
         """Lista todos os cupons cadastrados."""
-        # TODO: Implementar Passo 2.6 do Guia do Desenvolvedor
         cursor = self.conn.execute("SELECT * FROM cupons ORDER BY codigo ASC")
         return [self._instanciar_cupom(row) for row in cursor.fetchall()]
 
     def registrar_uso(self, codigo: str) -> None:
         """Incrementa atômica e seguramente o contador de usos no SQLite."""
-        # TODO: Implementar Passo 2.7 do Guia do Desenvolvedor (Integração com domínio e persistência)
         cupom = self.buscar_por_codigo(codigo)
         cupom.registrar_uso()
         self.conn.execute(
@@ -111,3 +88,17 @@ class CupomRepository:
             (cupom.usos_realizados, cupom.id)
         )
         self.conn.commit()
+
+    def _instanciar_cupom(self, row: sqlite3.Row) -> Cupom:
+        """Converte uma linha relacional do SQLite para o objeto de domínio Cupom."""
+        return Cupom(
+            id=row["id"],
+            codigo=row["codigo"],
+            tipo_desconto=TipoDesconto(row["tipo_desconto"]),
+            valor_desconto=float(row["valor_desconto"]),
+            valor_minimo_pedido=float(row["valor_minimo_pedido"]),
+            limite_usos=int(row["limite_usos"]),
+            usos_realizados=int(row["usos_realizados"]),
+            validade_ate=row["validade_ate"],
+            ativo=bool(row["ativo"])
+        )
